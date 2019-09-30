@@ -287,7 +287,7 @@
     update() {
       //this.vel.x += this.acc.x;
       //this.vel.y += this.acc.y;
-      // this.translate(0, -1);
+      this.translate(0, -1);
       this.rotate(0.1);
 
       var entities = this.engine.entityManager.entities;
@@ -717,6 +717,18 @@
       ]
     );
     engine.entityManager.add(new DynamicEntity(engine, rec));
+
+    var pentagon = new Polygon(
+      new Vector(150, 160),
+      [
+        new Vector(0, 200),
+        new Vector(50, 100),
+        new Vector(100, 100),
+        new Vector(150, 200),
+        new Vector(100, 250),
+      ]
+    );
+    engine.entityManager.add(new DynamicEntity(engine, pentagon));
 
     window.addEventListener("resize", function() {engine.resize()});
     document.onkeydown = keysDown;

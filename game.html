@@ -2,13 +2,14 @@
 
   <style>
     html, body {
+    background-color: #eee;
     width: 100%;
     height: 100%;
     margin: 0;
   }
 
   #canvas {
-    background-color: black;
+    background-color: #eee;
     width: 100%;
     height: 100%;
     display: block;
@@ -128,10 +129,13 @@
     }
 
     rotate(pivot, dr) {
-      var vec = this.sub(pivot);
-      vec.x = vec.x * Math.cos(dr) - vec.y * Math.sin(dr);
-      vec.y = vec.x * Math.sin(dr) + vec.y * Math.cos(dr);
-      return vec.add(pivot);
+      var diff = this.sub(pivot);
+      var vec = new Vector(
+        diff.x * Math.cos(dr) - diff.y * Math.sin(dr),
+        diff.x * Math.sin(dr) + diff.y * Math.cos(dr)
+      );
+      vec = vec.add(pivot);
+      return vec;
     }
 
     // interval properties
@@ -283,7 +287,7 @@
     update() {
       //this.vel.x += this.acc.x;
       //this.vel.y += this.acc.y;
-      this.translate(0, -1);
+      // this.translate(0, -1);
       this.rotate(0.1);
 
       var entities = this.engine.entityManager.entities;
@@ -299,6 +303,8 @@
           }
         }
       }
+
+
     }
 
   }
@@ -409,7 +415,7 @@
       var width = this.canvas.offsetWidth;
       var height = this.canvas.offsetHeight;
       this.graphics.clearRect(0, 0, width, height);
-      this.graphics.fillStyle = "white";
+      this.graphics.fillStyle = "#eeeeee";
       this.graphics.fillRect(0, 0, width, height);
 
       var entities = this.engine.entityManager.entities;
@@ -702,7 +708,7 @@
 
 
     var rec = new Polygon(
-      new Vector(0, 0),
+      new Vector(25, 25),
       [
         new Vector(0, 50),
         new Vector(50, 50),

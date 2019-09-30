@@ -1,20 +1,23 @@
 <html>
-  <body>
-    <div id="canvas"></div>
-  </body>
-</html>
 
-<style>
-  html, body, #canvas {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      background-color: red;
+  <style>
+    html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
   }
-</style>
 
-<script src="pixi.js"></script>
+  #canvas {
+    background-color: black;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  </style>
+
+  <body>
+    <canvas id="canvas"></canvas>
+  </body>
 
 <script>
 
@@ -148,6 +151,10 @@
         return bool;
     }
 
+    copy() {
+      return new Vector(this.x, this.y);
+    }
+
     toString() {
       return '[' + this.x + ', ' + this.y + ']';
     }
@@ -157,6 +164,7 @@
   class Shape {
 
     center = new Vector(0, 0);
+    rot = 0;
 
     constructor(center) {
       this.center = center;
@@ -203,26 +211,30 @@
       }
     }
 
+    copy() {
+
+    }
+
   }
 
   class Entity {
 
-    game = null;
+    engine = null;
 
     rot = 0;
     pos = new Vector(0, 0);
-    v = new Vector(0, 0);
+    vel = new Vector(0, 0);
+    acc = new Vector(0, 0);
 
     shape = null;
     sprite = null;
 
-    constructor(game, x, y, shape) {
-      this.game = game;
-      this.pos.x = x;
-      this.pos.y = y;
+    constructor(engine, shape) {
+      this.engine = engine;
+      this.pos.x = shape.center.x;
+      this.pos.y = shape.center.y;
       this.rot = 0;
       this.shape = shape;
-      this.sprite = game.draw.drawShape(shape);
     }
 
     translate(dx, dy) {
@@ -254,63 +266,12 @@
 
   }
 
-  class Mob extends Entity {
-
-
-
-    constructor(game, x, y) {
-      super(game, x, y);
-    }
-
-    accelerate(dv) {
-      this.v = this.v.add(dv);
-    }
-
-  }
-
-  class Tribox extends Mob {
-
-    constructor(game, x, y) {
-      super(game, x, y);
-      this.draw();
-    }
-
-    draw() {
-      var base = 60;
-      var height = 30 * Math.sqrt(3);
-
-      var p1 = new Vector(0, height/2);
-      var p2 = new Vector(base/2, -height/2);
-      var p3 = new Vector(-base/2, -height/2);
-
-      this.sprite = this.game.draw.triangle(p1, p2, p3);
-
-      var v1 = p1.add(this.pos);
-      var v2 = p2.add(this.pos);
-      var v3 = p3.add(this.pos);
-      var vertices = [v1, v2, v3];
-
-      this.shape = new Polygon(this.pos, vertices);
-    }
-
-    update() {
-      /*
-      var vert = '';
-      for(var i = 0; i < this.shape.vertices.length; ++i) {
-        vert += this.shape.vertices[i].toString();
-      }
-      console.log(vert);
-      */
-    }
-
-  }
-
   class Collision {
 
-    game = null;
+    engine = null;
 
-    constructor(game) {
-      this.game = game;
+    constructor(engine) {
+      this.engine = engine;
     }
 
     detect(s1, s2) {
@@ -351,19 +312,15 @@
   class EntityManager {
 
     entities = [];
-    player = null;
-    collision = new Collision(game);
+    collision = new Collision(engine);
 
     update() {
-      this.player.update();
       var len = this.entities.length;
       for(var i = 0; i < len; ++i) {
         var entity = this.entities[i];
-        if(!(entity instanceof Player)) {
-          entity.update();
-        }
+        entity.update();
       }
-
+      /*
       for(var i = 0; i < len; ++i) {
         var entity = this.entities[i];
         if(!(this.player == entity)) {
@@ -376,93 +333,114 @@
           }
         }
       }
+      */
     }
 
     add(entity) {
       this.entities.push(entity);
     }
 
-    addPlayer(player) {
-      this.player = player;
-      this.entities.push(player);
+  }
+
+  class Camera {
+
+    // world using cartesian coordinate system
+    // pixi js system is right => +
+    //                   down  => +
+    //                   origin is top left
+
+    engine = null;
+    offset = null;
+
+    constructor(engine) {
+      /*
+      this.engine = engine;
+      this.offset = new Vector(
+        this.engine.draw.renderer.width / 2,
+        this.engine.draw.renderer.height / 2
+      );
+      */
+    }
+
+    render(entity) {
+
     }
 
   }
 
   class Draw {
+    engine = null;
 
+    canvas = null;
     renderer = null;
     stage = null;
 
-    constructor() {
-      // admit to being a jerk face
-      PIXI.utils.skipHello();
+    offset = null;
 
-      this.renderer = new PIXI.Renderer({
-        antialias: true
-      });
-
-      this.stage = new PIXI.Container();
-
-      document.getElementById('canvas').appendChild(this.renderer.view);
+    constructor(engine) {
+      this.engine = engine;
+      this.canvas = document.getElementById('canvas');
+      this.renderer = this.canvas.getContext("2d");
       Debug.log({type: 'info', msg: 'draw initialized'});
+
+      this.canvas.width = Math.max(600, window.innerWidth);
+      this.canvas.height = Math.max(400, window.innerHeight);
+      var width = this.canvas.width;
+      var height = this.canvas.height;
+
+      this.offset = new Vector(
+        width / 2,
+        height / 2
+      );
     }
 
     render() {
-      this.renderer.render(this.stage);
+      var width = this.canvas.offsetWidth;
+      var height = this.canvas.offsetHeight;
+      this.renderer.clearRect(0, 0, width, height);
+      this.renderer.fillStyle = "white";
+      this.renderer.fillRect(0, 0, width, height);
+
+      var entities = this.engine.entityManager.entities;
+      for(var i = 0; i < entities.length; ++i) {
+        var entity = entities[i];
+        this.shape(entity.shape, this.offset);
+      }
+    }
+
+    resize() {
+      this.renderer.renderer.setSize(width, height);
     }
 
     text(x, y, msg) {
-      const style = new PIXI.TextStyle({
-          fontFamily: 'Arial',
-          fontSize: 36,
-          fill: '#ffffff', // gradient
-          stroke: '#4a1850',
-          strokeThickness: 5,
-      });
-      var g = new PIXI.Text(msg, style);
-      g.x = x;
-      g.y = y;
-      this.stage.addChild(g);
-      return g;
+      //var text = this.renderer.makeText(msg, x, y);
+      //text.fill = 'white';
+      //return text;
     }
 
-    // circle is drawn relative to origin
-    circle(center, radius) {
-      var g = new PIXI.Graphics();
-      g.beginFill(0xC34288);
-      g.drawCircle(0, 0, radius);
-      g.endFill();
-      this.stage.addChild(g);
-      return g;
+    shape(shape, offset) {
+      //if(shape instanceof Polygon) {
+        this.polygon(shape.vertices, offset);
+      //}
     }
 
-    // triangle is drawn relative to origin
-    triangle(p1, p2, p3) {
-      var g = new PIXI.Graphics();
-      g.beginFill(0xFF3300);
-      g.moveTo(p1.x, -p1.y);
-      g.lineTo(p2.x, -p2.y);
-      g.lineTo(p3.x, -p3.y);
-      g.lineTo(p1.x, -p1.y);
-      g.closePath();
-      g.endFill();
-      this.stage.addChild(g);
-      return g;
-    }
-
-    polygon(points) {
-      var g = new PIXI.Graphics();
-      g.beginFill(0xFF3300);
-      g.moveTo(points[0].x, -points[0].y);
+    polygon(points, offset) {
+      this.renderer.fillStyle = 'red';
+      this.renderer.beginPath();
+      this.renderer.moveTo(
+        points[0].x + offset.x,
+        -points[0].y + offset.y
+      );
       for(var i = 1; i < points.length; ++i) {
-        g.lineTo(points[i].x, -points[i].y);
+        this.renderer.lineTo(
+          points[i].x + offset.x,
+          -points[i].y + offset.y
+        );
+        console.log((points[i].x + offset.x) + ' ' +  (-points[i].y + offset.y));
       }
-      g.lineTo(points[0].x, -points[0].y);
-      g.closePath();
-      g.endFill();
-      this.stage.addChild(g);
-      return g;
+      this.renderer.closePath();
+      this.renderer.fill();
+      // console.log(offset);
     }
 
   }
@@ -489,85 +467,38 @@
 
   }
 
-   class Camera {
-
-     // world using cartesian coordinate system
-
-     // pixi js system is right => +
-     //                   down  => +
-
-     game = null;
-     center = true;
-
-     constructor(game) {
-       this.game = game;
-     }
-
-     update() {
-       if(this.center) {
-         var entities = this.game.entityManager.entities;
-         // var player = this.game.entityManager.player;
-         var width = this.game.draw.renderer.width;
-         var height = this.game.draw.renderer.height;
-         var ox = width / 2;
-         var oy = height / 2;
-
-         player.sprite.position.x = ox; // + player.v.x * 10;
-         player.sprite.position.y = oy; // - player.v.y * 10;
-         // player.sprite.rotation = -player.rot;
-
-         for(var i = 0; i < entities.length; ++i) {
-           var entity = entities[i];
-           if(!(entity instanceof Player)) {
-             entity.sprite.position.x = player.sprite.position.x + (entity.pos.x - player.pos.x);
-             entity.sprite.position.y = player.sprite.position.y - (entity.pos.y - player.pos.y);
-             // console.log(player.pos.y);
-          }
-         }
-       }
-     }
-
-   }
-
-  class Game {
+  class Engine {
 
     draw = null;
     input = null;
-    reports = null;
     entityManager = null;
     camera = null;
     fps = null;
 
     constructor() {
       // init graphics
-      this.draw = new Draw();
-
+      this.draw = new Draw(this);
       this.input = new Input();
-
       // init resize event
       this.resize();
-
       this.entityManager = new EntityManager();
-
       this.camera = new Camera(this);
-
       if(Debug.active) {
-        this.fps = this.draw.text(1, 1, fps);
+        // this.fps = this.draw.text(1, 1, fps);
       }
-
-      Debug.log({type: 'info', msg: 'game initialized'});
+      Debug.log({type: 'info', msg: 'engine initialized'});
     }
 
     // resize event
     resize() {
-      this.draw.renderer.resize(window.innerWidth, window.innerHeight);
+      // this.draw.resize(window.innerWidth, window.innerHeight);
       Debug.log({type: 'info', msg: 'window resized'});
     }
 
     update() {
       this.entityManager.update();
-      this.camera.update();
-      this.fps.text = Math.floor(fps);
+      // this.camera.update();
+      // this.fps.text = Math.floor(fps);
     }
 
     render() {
@@ -576,7 +507,7 @@
 
   }
 
-  var game = new Game();
+  var engine = new Engine();
 
   var previous = 0;
   var cap = 80;
@@ -594,7 +525,7 @@
     previous = time;
 
     while(delta >= step) {
-      game.update();
+      engine.update();
       delta -= step;
       ++frames;
     }
@@ -602,18 +533,18 @@
     fps = frames / (elapse / 1000);
     frames = 0;
 
-    game.render();
+    engine.render();
     requestAnimationFrame(loop);
   }
 
   function keysDown(e) {
     e = e || window.event;
-    game.input.keyDown(e.keyCode);
+    engine.input.keyDown(e.keyCode);
   }
 
   function keysUp(e) {
     e = e || window.event;
-    game.input.keyUp(e.keyCode);
+    engine.input.keyUp(e.keyCode);
   }
 
   // testing
@@ -749,15 +680,33 @@
 
 
   function run() {
-    game.entityManager.addPlayer(new Player(game, 0, 0));
+    var width = engine.draw.renderer.width;
+    var height = engine.draw.renderer.height;
 
-    // planet test basic 1
-    // game.entityManager.add(new Planet(game, 200, 200, 100));
+    var floor = new Polygon(
+      new Vector(0, -height/2+100),
+      [
+        new Vector(0, 100), new Vector(100, 100),
+        new Vector(100, 0), new Vector(0, 0)
+      ]
+    );
+    engine.entityManager.add(new Entity(engine, floor));
 
-    // collision test basic 1
-    game.entityManager.add(new Tribox(game, 300, 300));
+    /*
+    var rec = new Polygon(
+      new Vector(0, 0),
+      [
+        new Vector(0, 250),
+        new Vector(250, 250),
+        new Vector(250, 0),
+        new Vector(0, 0),
+        new Vector(120, 123),
+      ]
+    );
+    engine.entityManager.add(new Entity(engine, rec));
+    */
 
-    window.addEventListener("resize", function() {game.resize()});
+    window.addEventListener("resize", function() {engine.resize()});
     document.onkeydown = keysDown;
     document.onkeyup = keysUp;
     requestAnimationFrame(loop);

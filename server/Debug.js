@@ -1,4 +1,4 @@
-export default class Debug {
+class Debug {
 
   // enables or disables reporting
   static active = true;
@@ -6,9 +6,9 @@ export default class Debug {
   static log(report) {
     if(Debug.active) {
       if(report.type === 'info') {
-        console.log('MESSAGE: ' + report.msg);
+        console.log('message: ' + report.msg);
       } else if(report.type === 'error' || report.type === 'fatal') {
-        console.log('ERROR: ' + report.msg);
+        console.log('error: ' + report.msg);
       }
     }
   }
@@ -18,3 +18,5 @@ export default class Debug {
   }
 
 }
+
+module.exports = Debug;

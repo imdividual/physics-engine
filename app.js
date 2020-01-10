@@ -1,3 +1,8 @@
+var tests = require('./server/tests.js');
+tests();
+
+const Engine = require('./server/Engine.js');
+
 var express = require('express');
 var app = express();
 var serv = require('http').Server(app);
@@ -10,7 +15,7 @@ app.use('/client', express.static(__dirname + '/client'));
 
 serv.listen(8080);
 
-console.log("server started.");
+console.log("server started");
 
 var io = require('socket.io')(serv, {});
 
@@ -34,29 +39,34 @@ io.sockets.on('connection', function(socket) {
     }
     socket.id = id;
 
-    // Attributes
+    // attributes
     socket.state = -1;
 
-    // Add socket
+    // add socket
     SOCKET_LIST[socket.id] = socket;
 
-    // When player disconnects
+    // when player disconnects
     socket.on('disconnect', function() {
       console.log('socket disconnection');
         delete SOCKET_LIST[socket.id];
     });
 });
 
-// Main game loop
+var engine = new Engine();
+engine.init();
+
+// main game loop
 setInterval(function() {
-    // Send data to client
+    // engine calculations
+    engine.update();
+
+    // send data to client
     for (var i in SOCKET_LIST) {
-        // Calculations
         var socket = SOCKET_LIST[i];
-        //console.log(circles)
         socket.emit(
             'update', {
-                state: socket.state
-            });
+                entities: engine.entityManager.package()
+            }
+        );
     }
 }, 1000 / FPS);

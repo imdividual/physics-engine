@@ -19,13 +19,7 @@ class EntityManager {
         for(var j = 0; j < len; ++j) {
           if(i != j) {
             var entity2 = this.entities[j];
-            var collide = this.collision.detect(
-              entity1.shape, entity2.shape
-            );
-            // console.log(collide);
-            if(collide !== false) {
-              entity1.translate(collide.x, collide.y);
-            }
+            var collided = this.collision.collide(entity1, entity2);
           }
         }
       }

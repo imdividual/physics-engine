@@ -18,6 +18,7 @@
   "homepage": "https://github.com/imdividual/physics-engine#readme",
   "dependencies": {
     "express": "^4.17.1",
+    "requirejs": "^2.3.6",
     "socket.io": "^2.3.0"
   }
 }

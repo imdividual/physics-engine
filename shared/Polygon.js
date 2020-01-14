@@ -1,3 +1,4 @@
+const Vector = require('./Vector.js');
 const Shape = require('./Shape.js');
 
 class Polygon extends Shape {
@@ -7,7 +8,19 @@ class Polygon extends Shape {
   constructor(center, vertices) {
     super(center);
     this.vertices = vertices;
+    super.center = this.centroid(vertices);
     // this.translate(center.x, center.y); // WTF???
+  }
+
+  centroid(vertices) {
+    var x = 0;
+    var y = 0;
+    var len = vertices.length;
+    for(var i = 0; i < vertices.length; ++i) {
+      x += vertices[i].x;
+      y += vertices[i].y;
+    }
+    return new Vector(x/len, y/len);
   }
 
   edges() {

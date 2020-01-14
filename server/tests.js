@@ -137,6 +137,17 @@ function tests() {
   var vecd2 = new Vector(3, 4);
   assert(approx(vecd1.dist(vecd2), 5));
 
+  // 19
+  var p3 = new Vector(0, 1);
+  var p4 = new Vector(-4, 1);
+  var p5 = new Vector(-2, 0);
+  var tri6 = new Polygon(
+    new Vector(0, 0),
+    [new Vector(0, 0), new Vector(2, 1), new Vector(-2, 2)]
+  );
+  assert(collision.inside(p3, tri6));
+  assert(!collision.inside(p4, tri6));
+  assert(!collision.inside(p5, tri6));
 }
 
 module.exports = tests;

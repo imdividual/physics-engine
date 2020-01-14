@@ -9,6 +9,7 @@ class Entity {
   pos = new Vector(0, 0);
   vel = new Vector(0, 0);
   acc = new Vector(0, 0);
+  avel = 0;
 
   shape = null;
   sprite = null;
@@ -59,13 +60,15 @@ class DynamicEntity extends Entity {
 
   constructor(shape) {
     super(shape);
+    this.acc = new Vector(0, -0.1);
   }
 
   update() {
     //this.vel.x += this.acc.x;
     //this.vel.y += this.acc.y;
-    this.translate(0, -1);
-    this.rotate(0.1);
+    this.vel = this.vel.add(this.acc);
+    this.translate(this.vel.x, this.vel.y);
+    this.rotate(this.avel);
   }
 
 }

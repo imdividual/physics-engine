@@ -6,3 +6,5 @@ Install the following node packages:
 express
 socket.io
 requirejs
+
+Run client on Chrome

@@ -1,3 +1,10 @@
+Ensure you are using Node 12.16.3+
+
+
+Install the following node packages:
+
 express
 socket.io
 requirejs
+
+Run client on Chrome on 127.0.0.1:8080

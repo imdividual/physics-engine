@@ -60,7 +60,6 @@ class DynamicEntity extends Entity {
 
   constructor(shape) {
     super(shape);
-    this.acc = new Vector(0, -0.1);
   }
 
   update() {

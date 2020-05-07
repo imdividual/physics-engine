@@ -65,7 +65,7 @@ class Collision {
         //console.log('not intersected');
       }
     }
-    return (count % 2 != 0) ? true : false;
+    return count % 2 != 0;
   }
 
   detect(s1, s2) {
@@ -84,19 +84,26 @@ class Collision {
     return true;
   }
 
-  collide(entity1, entity2) {
+  collide(delta, entity1, entity2) {
+    if(entity1 instanceof StaticEntity && entity2 instanceof StaticEntity) return false;
+
+    if(entity1 instanceof StaticEntity && entity2 instanceof DynamicEntity) {
+      var temp = entity1;
+      entity1 = entity2;
+      entity2 = temp;
+    }
+
     var s1 = entity1.shape;
     var s2 = entity2.shape;
-    // console.log(s1.vertices);
-    // console.log(s2.vertices);
-    var edges = (s1.edges()).concat(s2.edges());
+    var edges1 = s1.edges();
+    var edges2 = s2.edges();
 
     var overlapMin = null;
     var overlapDir = null;
 
     // console.log(edges)
-    for(var i = 0; i < edges.length; ++i) {
-      var axis = edges[i].normal();
+    for(var i = 0; i < edges1.length; ++i) {
+      var axis = edges1[i].normal().scale(-1); // normals point inwards
       var proj1 = this.projShape(axis, s1);
       var proj2 = this.projShape(axis, s2);
       if(!proj1.overlap(proj2)) {
@@ -104,9 +111,8 @@ class Collision {
         // console.log(proj2);
         return false;
       } else {
-        var overlap = Math.abs(
-          Math.min(proj1.y, proj2.y) - Math.max(proj1.x, proj2.x)
-        );
+        var overlap =
+          Math.abs(Math.min(proj1.y, proj2.y) - Math.max(proj1.x, proj2.x));
         if(overlapMin == null || overlap < overlapMin) {
           overlapMin = overlap;
           overlapDir = axis;
@@ -114,41 +120,111 @@ class Collision {
       }
     }
 
-    var mtv = (overlapDir.normalize()).scale(overlapMin);
-
-    // resolution
-
-    if(mtv.zero()) return true;
-
-    var v1 = entity1.vel;
-    var v2 = entity2.vel;
-
-    // project along normal
-    var v1x = mtv.proj(v1);
-    var v1y = v1.sub(v1x);
-    var v1x = v1x.scale(-1);
-    var v1f = v1x.add(v1y);
-
-    var v2x = mtv.proj(v2);
-    var v2y = v2.sub(v1x);
-    var v2x = v2x.scale(-1);
-    var v2f = v2x.add(v2y);
-
-    entity1.vel = v1f.scale(0.55);
-
-    // collide vertex
-    var vertex = null;
-    for(var i = 0; i < s1.vertices.length; ++i) {
-      var cur = s1.vertices[i];
-      if(this.inside(cur, s2)) {
-        vertex = cur;
-        break;
+    for(var i = 0; i < edges2.length; ++i) {
+      var axis = edges2[i].normal(); // normals point outward
+      var proj1 = this.projShape(axis, s1);
+      var proj2 = this.projShape(axis, s2);
+      if(!proj1.overlap(proj2)) {
+        // console.log(proj1);
+        // console.log(proj2);
+        return false;
+      } else {
+        var overlap =
+          Math.abs(Math.min(proj1.y, proj2.y) - Math.max(proj1.x, proj2.x));
+        if(overlapMin == null || overlap < overlapMin) {
+          overlapMin = overlap;
+          overlapDir = axis;
+        }
       }
     }
 
-    if(vertex != null) {
-      // console.log(vertex);
-      if(entity1 instanceof DynamicEntity) {
+    // resolution
+
+    var mtv = overlapDir.normalize().scale(overlapMin);
+    var v1 = entity1.vel;
+    var v2 = entity2.vel;
+
+    // collided vertex
+    var hits = [];
+    for(var i = 0; i < s1.vertices.length; ++i) {
+      var cur = s1.vertices[i];
+      if(this.inside(cur, s2)) {
+        hits.push(cur);
+      }
+    }
+    for(var i = 0; i < s2.vertices.length; ++i) {
+      var cur = s2.vertices[i];
+      if(this.inside(cur, s1)) {
+        hits.push(cur);
+      }
+    }
+    console.log(hits.length);
+    if(hits.length != 0) {
+      if(!mtv.zero()) {
+        if(entity2 instanceof StaticEntity) {
+          var e = 0.80;
+          var n = overlapDir;
+          var v_ap = v1;
+          var m_a = 1.0;
+          var p = hits[0];
+          if(hits.length >= 2) p = hits[1].add(hits[0]).scale(0.5);
+          var r_ap = p.sub(s1.center);
+          var i_a = 1.0;
+          var j_num = -1 * (1 + e) * v_ap.dot(n);
+          var j_den = 1 / m_a + Math.pow(r_ap.cross(n), 2) / i_a;
+          var j = j_num / j_den;
+          entity1.vel = entity1.vel.add(n.scale(j / m_a));
+        } else if(entity2 instanceof DynamicEntity) {
+          var e = 0.8;
+          var n = overlapDir;
+          var v_ab = v1.sub(v2);
+          var m_a = 1.0;
+          var m_b = 1.0;
+          var p = hits[0];
+          if(hits.length >= 2) p = hits[1].add(hits[0]).scale(0.5);
+          var r_ap = p.sub(s1.center);
+          var r_bp = p.sub(s2.center);
+          var i_a = 1.0;
+          var i_b = 1.0;
+
+          //var v_n = v_ab.dot(n);
+          //if(v_n <= 0) {
+            var j_num = -1 * (1 + e) * v_ab.dot(n);
+            var j_den = 1 / m_a + 1 / m_b +
+                        Math.pow(r_ap.cross(n), 2) / i_a +
+                        Math.pow(r_bp.cross(n), 2) / i_b;
+            var j = j_num / j_den;
+            entity1.vel = entity1.vel.add(n.scale(j / m_a));
+            entity2.vel = entity2.vel.sub(n.scale(j / m_b));
+          //}
+        }
+      }
+    }
+
+    if(!mtv.zero()) {
+      entity1.translate(mtv.x, mtv.y);
+    }
+
+    /*
+
+    */
+
+
+
+      /*
+
+      // collide vertex
+      var vertex = null;
+      for(var i = 0; i < s1.vertices.length; ++i) {
+        var cur = s1.vertices[i];
+        if(this.inside(cur, s2)) {
+          vertex = cur;
+          break;
+        }
+      }
+
+      if(vertex != null) {
+        // console.log(vertex);
         var dir = vertex.sub(s1.center).cross(v1f.sub(v1));
         if(dir > 0) entity1.avel += 0.00005 * vertex.sub(s1.center).mag() * Math.abs(v1f.sub(v1).mag());
         if(dir < 0) entity1.avel -= 0.00005 * vertex.sub(s1.center).mag() * Math.abs(v1f.sub(v1).mag());
@@ -157,11 +233,8 @@ class Collision {
           entity1.avel *= -0.45;
         }
       }
-    }
+      */
 
-    entity1.translate(mtv.x, mtv.y);
-
-    return true;
   }
 
 }

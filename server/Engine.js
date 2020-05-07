@@ -1,4 +1,4 @@
-const Debug = require('./Debug.js');
+const Debug = require('../shared/Debug.js');
 const EntityManager = require('./EntityManager.js');
 
 // for init
@@ -21,8 +21,8 @@ class Engine {
     Debug.log({type: 'info', msg: 'engine initialized'});
   }
 
-  update() {
-    this.entityManager.update();
+  update(delta) {
+    this.entityManager.update(delta);
     // this.camera.update();
     // this.fps.text = Math.floor(fps);
   }
@@ -55,6 +55,7 @@ class Engine {
     var ewall = new StaticEntity(wall)
     this.entityManager.add(ewall);
 
+    /*
     var rec = new Polygon(
       new Vector(25, 25),
       [
@@ -94,6 +95,7 @@ class Engine {
     var epol = new DynamicEntity(pentagon);
     epol.translate(0, 100);
     this.entityManager.add(epol);
+    */
 
   }
 }

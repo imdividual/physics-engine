@@ -259,4 +259,14 @@ var renderer = new Renderer();
 socket.on('update', function(data) {
   entities = data.entities;
   renderer.render();
-})
+});
+
+function onclick(event) {
+  var rect = canvas.getBoundingClientRect();
+  var x = (event.clientX - rect.left) - canvas.width/2;
+  var y = canvas.height/2 - (event.clientY - rect.top);
+  console.log(x + " " + y);
+  socket.emit('add', {x: x, y: y});
+}
+
+document.addEventListener("click", onclick);

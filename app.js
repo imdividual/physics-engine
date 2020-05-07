@@ -11,6 +11,7 @@ app.get('/', function(req, res) {
     res.sendFile(__dirname + '/client/index.html');
 });
 
+app.use('/shared', express.static(__dirname + '/shared'));
 app.use('/client', express.static(__dirname + '/client'));
 
 serv.listen(8080);
@@ -45,6 +46,10 @@ io.sockets.on('connection', function(socket) {
     // add socket
     SOCKET_LIST[socket.id] = socket;
 
+    socket.on('add', function(data) {
+      engine.entityManager.addRandom(data.x, data.y);
+    });
+
     // when player disconnects
     socket.on('disconnect', function() {
       console.log('socket disconnection');
@@ -56,6 +61,25 @@ var engine = new Engine();
 engine.init();
 
 // main game loop
+const gameloop = require('node-gameloop');
+
+const id = gameloop.setGameLoop(function(delta) {
+  // engine calculations
+  engine.update(delta);
+
+  // send data to client
+  for (var i in SOCKET_LIST) {
+      var socket = SOCKET_LIST[i];
+      socket.emit(
+          'update', {
+              entities: engine.entityManager.package()
+          }
+      );
+  }
+}, 1000 / 60);
+
+
+/*
 setInterval(function() {
     // engine calculations
     engine.update();
@@ -70,3 +94,4 @@ setInterval(function() {
         );
     }
 }, 1000 / FPS);
+*/

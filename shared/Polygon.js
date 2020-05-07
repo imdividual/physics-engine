@@ -41,10 +41,6 @@ class Polygon extends Shape {
     }
   }
 
-  copy() {
-
-  }
-
 }
 
 module.exports = Polygon;

@@ -1,4 +1,4 @@
-const Debug = require('../server/Debug.js');
+const Debug = require('../shared/Debug.js');
 
 class Vector {
 
@@ -146,6 +146,10 @@ class Vector {
           this.y * (p2.x - p1.x) &&
         this.x <= Math.max(p1.x, p2.x) &&
         this.y >= Math.min(p1.y, p2.y) && this.y <= Math.max(p1.y, p2.y);
+  }
+
+  equals(vec) {
+    return this.x == vec.x && this.y == vec.y;
   }
 
   copy() {

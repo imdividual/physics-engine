@@ -84,6 +84,33 @@ class Collision {
     return true;
   }
 
+  clip1(shape, n) {
+    var len = shape.vertices.length;
+    var max = -99999;
+    var index = null;
+    for (var i = 0; i < len; i++) {
+      var proj = n.dot(s1.vertices[i]);
+      if (proj > max) {
+        max = proj;
+        index = i;
+      }
+    }
+
+    var v = shape.vertices[index];
+    var v0 = shape.vertices[(index-1+len)%len];
+    var v1 = shape.vertices[(index+1)%len];
+
+    var l = v.sub(v1).normalize();
+    var r = v.sub(v0).normalize();
+
+    var edges = [];
+    if (r.dot(n) <= l.dot(n)) {
+      edges = [v, v0, v];
+    } else {
+      edges = [v, v, v1];
+    }
+  }
+
   collide(delta, entity1, entity2) {
     if(entity1 instanceof StaticEntity && entity2 instanceof StaticEntity) return false;
 
@@ -107,8 +134,6 @@ class Collision {
       var proj1 = this.projShape(axis, s1);
       var proj2 = this.projShape(axis, s2);
       if(!proj1.overlap(proj2)) {
-        // console.log(proj1);
-        // console.log(proj2);
         return false;
       } else {
         var overlap =
@@ -140,7 +165,36 @@ class Collision {
 
     // resolution
 
+    var n = overlapDir;
     var mtv = overlapDir.normalize().scale(overlapMin);
+
+    s1.collided = true;
+    s2.collided = true;
+
+    if(mtv.zero()) return;
+
+    // clipping algorithm
+
+    /*
+    var e1 = this.clip1(s1, n);
+    var e2 = this.clip1(s2, n);
+
+    var ref = [];
+    var inc = [];
+    var flip = false;
+    if(Math.abs(e1.dot(n)) <= Math.abs(e2.dot(n))) {
+      ref = e1;
+      inc = e2;
+    } else {
+      ref = e2;
+      inc = e1;
+      flip = true;
+    }
+    */
+
+
+    /*
+
     var v1 = entity1.vel;
     var v2 = entity2.vel;
 
@@ -204,8 +258,6 @@ class Collision {
     if(!mtv.zero()) {
       entity1.translate(mtv.x, mtv.y);
     }
-
-    /*
 
     */
 

@@ -11,8 +11,8 @@ app.get('/', function(req, res) {
     res.sendFile(__dirname + '/client/index.html');
 });
 
-app.use('/shared', express.static(__dirname + '/shared'));
 app.use('/client', express.static(__dirname + '/client'));
+app.use('/shared', express.static(__dirname + '/shared'));
 
 serv.listen(8080);
 
@@ -48,6 +48,18 @@ io.sockets.on('connection', function(socket) {
 
     socket.on('add', function(data) {
       engine.entityManager.addRandom(data.x, data.y);
+    });
+
+    socket.on('lock', function(data) {
+      engine.entityManager.lock(data.x, data.y);
+    });
+
+    socket.on('unlock', function(data) {
+      engine.entityManager.unlock();
+    });
+
+    socket.on('move', function(data) {
+      engine.entityManager.move(data.x, data.y);
     });
 
     // when player disconnects

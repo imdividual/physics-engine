@@ -14,6 +14,13 @@ class EntityManager {
 
   update(delta) {
     var len = this.entities.length;
+
+    // reset collision parameters
+    for(var i = 0; i < len; ++i) {
+      var entity = this.entities[i];
+      entity.shape.collided = false;
+    }
+
     for(var i = 0; i < len; ++i) {
       var entity = this.entities[i];
       entity.update();
@@ -72,6 +79,32 @@ class EntityManager {
     var e = new DynamicEntity(new Polygon(center, vertices))
     if(this.mode == 1) e.acc = new Vector(0, -0.1);
     this.add(e);
+  }
+
+  locked = null;
+
+  lock(x, y) {
+    var len = this.entities.length;
+    for(var i = 0; i < len; ++i) {
+      var entity = this.entities[i];
+      var click = new Vector(x, y);
+      var inside = this.collision.inside(click, entity.shape);
+      if(inside) {
+        this.locked = entity;
+        break;
+      }
+    }
+  }
+
+  unlock() {
+    this.locked = null;
+  }
+
+  move(x, y) {
+    if(this.locked == null) return;
+    var click = new Vector(x, y);
+    var delta = click.sub(this.locked.shape.center);
+    this.locked.translate(delta.x, delta.y);
   }
 
   package() {

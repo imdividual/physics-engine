@@ -1,0 +1,4 @@
+#!/bin/bash
+
+browserify client/script.js -o client/script_bundle.js
+node ../physics-sandbox

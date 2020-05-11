@@ -5,11 +5,13 @@ var Polygon = require('../shared/Polygon.js');
 
 class Entity {
 
-  rot = 0;
   pos = new Vector(0, 0);
   vel = new Vector(0, 0);
   acc = new Vector(0, 0);
-  avel = 0;
+
+  rot = 0;
+  rvel = 0;
+  racc = 0;
 
   shape = null;
   sprite = null;
@@ -67,7 +69,9 @@ class DynamicEntity extends Entity {
     //this.vel.y += this.acc.y;
     this.vel = this.vel.add(this.acc);
     this.translate(this.vel.x, this.vel.y);
-    this.rotate(this.avel);
+
+    this.rvel += this.racc;
+    this.rotate(this.rvel);
   }
 
 }

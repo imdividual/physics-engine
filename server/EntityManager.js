@@ -100,6 +100,8 @@ class EntityManager {
   }
 
   unlock() {
+    if(this.locked == null) return;
+    this.locked.acc = new Vector(0, -0.1);
     this.locked = null;
   }
 
@@ -108,6 +110,10 @@ class EntityManager {
     var click = new Vector(x, y);
     var delta = click.sub(this.locked.shape.center);
     this.locked.translate(delta.x, delta.y);
+    this.locked.vel = new Vector(0,0);
+    this.locked.acc = new Vector(0,0);
+    this.locked.rvel = 0;
+    this.locked.racc = 0;
   }
 
   package() {

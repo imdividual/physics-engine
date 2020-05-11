@@ -269,17 +269,23 @@ class Collision {
       var j_num = -1 * (1 + e) * v_ap.dot(cn);
       var j_den = 1 / m_a + Math.pow(r_ap.cross(cn), 2) / i_a;
       var j = j_num / j_den;
-      entity1.vel = entity1.vel.add(cn.scale(j / m_a));
-      console.log(v_ap);
-      console.log(cn);
-      console.log(v_ap.dot(cn));
+
+      entity1.vel = entity1.vel.add(cn.scale(j / m_a)).scale(0.95);
+      entity1.rvel = entity1.rvel + r_ap.cross(cn.scale(j)) / i_a;
+      entity1.rvel *= 0.95;
+
+      entity1.translate(mtv.x, mtv.y);
+
+      //console.log(v_ap);
+      //console.log(cn);
+      //console.log(v_ap.dot(cn));
       // console.log(r_ap);
       // console.log(r_ap.cross(cn));
-      console.log(j_num + " " + j_den);
+      // console.log(j_num + " " + j_den);
     }
     else if(entity2 instanceof DynamicEntity) {
       var e = 0.8;
-      var n = overlapDir;
+      var cn = overlapDir;
       var v_ab = v1.sub(v2);
       var m_a = 1.0;
       var m_b = 1.0;
@@ -290,17 +296,24 @@ class Collision {
 
       //var v_n = v_ab.dot(n);
       //if(v_n <= 0) {
-        var j_num = -1 * (1 + e) * v_ab.dot(n);
-        var j_den = 1 / m_a + 1 / m_b +
-                    Math.pow(r_ap.cross(n), 2) / i_a +
-                    Math.pow(r_bp.cross(n), 2) / i_b;
-        var j = j_num / j_den;
-        entity1.vel = entity1.vel.add(n.scale(j / m_a));
-        entity2.vel = entity2.vel.sub(n.scale(j / m_b));
-      //}
+      var j_num = -1 * (1 + e) * v_ab.dot(cn);
+      var j_den = 1 / m_a + 1 / m_b +
+                  Math.pow(r_ap.cross(cn), 2) / i_a +
+                  Math.pow(r_bp.cross(cn), 2) / i_b;
+      var j = j_num / j_den;
+      entity1.vel = entity1.vel.add(n.scale(j / m_a)).scale(0.95);;
+      entity2.vel = entity2.vel.sub(n.scale(j / m_b)).scale(0.95);;
+
+      entity1.rvel = entity1.rvel + r_ap.cross(cn.scale(j)) / i_a;
+      entity1.rvel *= 0.95;
+      entity2.rvel = entity2.rvel - r_bp.cross(cn.scale(j)) / i_b;
+      entity2.rvel *= 0.95;
+
+      entity1.translate(mtv.x, mtv.y);
       entity2.translate(-mtv.x, -mtv.y);
     }
-    entity1.translate(mtv.x, mtv.y);
+
+
     /*
       // collide vertex
       var vertex = null;

@@ -7,6 +7,9 @@ class Shape {
   rot = 0;
 
   collided = false;
+  normal = [];
+  clip0 = [];
+  clip = [];
 
   constructor(center) {
     this.id = this.genID();

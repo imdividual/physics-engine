@@ -148,6 +148,57 @@ function tests() {
   assert(collision.inside(p3, tri6));
   assert(!collision.inside(p4, tri6));
   assert(!collision.inside(p5, tri6));
+
+  var s1 = new Polygon(new Vector(11, 6.5), [new Vector(14, 9), new Vector(8, 9), new Vector(8, 4), new Vector(14, 4)]);
+  var s2 = new Polygon(new Vector(8, 3.5), [new Vector(12, 5), new Vector(4, 5), new Vector(4, 2), new Vector(12, 2)]);
+  var n = new Vector(0, -1);
+  var e1 = collision.clip1(s1, n);
+  var e2 = collision.clip1(s2, n.scale(-1));
+
+  var ref = null;
+  var inc = null;
+  var flip = false;
+  if(Math.abs(e1.edge.dot(n)) <= Math.abs(e2.edge.dot(n))) {
+    ref = e1;
+    inc = e2;
+  } else {
+    ref = e2;
+    inc = e1;
+    flip = true;
+  }
+
+  var refv = ref.edge.normalize();
+  var o1 = refv.dot(ref.v1);
+
+  console.log(ref.max + " " + ref.v1 + " " + ref.v2 + " " + ref.edge);
+  console.log(inc.max + " " + inc.v1 + " " + inc.v2 + " " + inc.edge);
+  console.log(refv.toString());
+  console.log(o1);
+  var cp1 = collision.clip2(inc.v1, inc.v2, refv, o1);
+  console.log(cp1);
+  var o2 = refv.dot(ref.v2);
+  console.log(o1);
+  var cp2 = collision.clip2(cp1[0], cp1[1], refv.scale(-1), -o2);
+  console.log(cp2);
+  if(cp2.length < 2) return;
+
+  var refn = new Vector(refv.y * -1, refv.x);
+  var max = refn.dot(ref.max);
+  // if(flip) refn.scale(-1);
+  console.log(flip);
+  console.log(refn.toString());
+  console.log(max);
+
+  var cp = [];
+  var rm0 = (refn.dot(cp2[0]) - max) < 0;
+  var rm1 = (refn.dot(cp2[1]) - max) < 0;
+  if(!rm0) cp.push(cp2[0]);
+  if(!rm1) cp.push(cp2[1]);
+
+  s1.clip = cp;
+  console.log(cp);
+
+  var max = refn.dot(ref.max);
 }
 
 module.exports = tests;

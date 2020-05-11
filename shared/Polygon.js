@@ -1,6 +1,8 @@
 const Vector = require('./Vector.js');
 const Shape = require('./Shape.js');
 
+// polygon vertices must be counter clockwise
+
 class Polygon extends Shape {
 
   vertices = []; // array of Vector

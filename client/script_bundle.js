@@ -107,6 +107,8 @@ module.exports = Debug;
 const Vector = require('./Vector.js');
 const Shape = require('./Shape.js');
 
+// polygon vertices must be counter clockwise
+
 class Polygon extends Shape {
 
   vertices = []; // array of Vector
@@ -207,7 +209,56 @@ class Renderer {
       else
         this.graphics.strokeStyle = 'black';
       this.polygon(shape.vertices, offset);
-    //}
+
+      if(shape.normal.length == 2) {
+        this.graphics.strokeStyle = 'blue';
+        this.graphics.lineWidth = 1;
+        this.vector(shape.normal[0], shape.normal[1], offset);
+        this.graphics.lineWidth = 1;
+      }
+
+      /*
+      if(shape.clip0.length == 4) {
+        this.graphics.strokeStyle = 'cyan';
+        this.graphics.lineWidth = 4;
+        this.line(shape.clip0[0], shape.clip0[1], offset);
+        this.line(shape.clip0[2], shape.clip0[3], offset);
+        this.graphics.lineWidth = 1;
+      }
+      */
+
+      if(shape.clip.length == 1) {
+        this.graphics.fillStyle = 'green';
+        this.point(shape.clip[0], offset);
+      }
+
+      if(shape.clip.length == 2) {
+        this.graphics.strokeStyle = 'green';
+        this.graphics.lineWidth = 4;
+        this.line(shape.clip[0], shape.clip[1], offset);
+        // this.line(shape.clip[2], shape.clip[3], offset);
+        this.graphics.lineWidth = 1;
+      }
+  }
+
+  line(p1, p2, offset) {
+    this.graphics.beginPath();
+    this.graphics.moveTo(p1.x+offset.x, -p1.y+offset.y);
+    this.graphics.lineTo(p2.x+offset.x, -p2.y+offset.y);
+    this.graphics.closePath();
+    this.graphics.stroke();
+  }
+
+  vector(p1, p2, offset, color='blue') {
+    this.line(p1, p2, offset);
+    this.graphics.fillStyle = color;
+    this.point(p2, offset);
+  }
+
+  point(p0, offset) {
+    this.graphics.beginPath();
+    this.graphics.arc(p0.x+offset.x, -p0.y+offset.y, 3, 0, 2 * Math.PI);
+    this.graphics.fill();
   }
 
   polygon(points, offset) {
@@ -241,6 +292,9 @@ class Shape {
   rot = 0;
 
   collided = false;
+  normal = [];
+  clip0 = [];
+  clip = [];
 
   constructor(center) {
     this.id = this.genID();

@@ -19,6 +19,9 @@ class EntityManager {
     for(var i = 0; i < len; ++i) {
       var entity = this.entities[i];
       entity.shape.collided = false;
+      entity.shape.normal = [];
+      entity.shape.clip0 = [];
+      entity.shape.clip = [];
     }
 
     for(var i = 0; i < len; ++i) {
@@ -29,7 +32,7 @@ class EntityManager {
     for(var i = 0; i < len; ++i) {
       var entity1 = this.entities[i];
       //if(entity1 instanceof DynamicEntity) {
-        for(var j = 0; j < len; ++j) {
+        for(var j = i+1; j < len; ++j) {
           if(i != j) {
             var entity2 = this.entities[j];
             var collided = this.collision.collide(delta, entity1, entity2);

@@ -34,10 +34,10 @@ class Engine {
     var floor = new Polygon(
       new Vector(0, -height/2+50),
       [
-        new Vector(-width/2, -height/2+100),
         new Vector(width/2, -height/2+100),
-        new Vector(width/2, -height/2),
+        new Vector(-width/2, -height/2+100),
         new Vector(-width/2, -height/2),
+        new Vector(width/2, -height/2),
       ]
     );
     var efloor = new StaticEntity(floor);
@@ -46,10 +46,10 @@ class Engine {
     var wall = new Polygon(
       new Vector(width/2, height/2+50),
       [
-        new Vector(width/2, height),
         new Vector(width/2+100, height),
-        new Vector(width/2+100, -height/2),
+        new Vector(width/2, height),
         new Vector(width/2, -height/2),
+        new Vector(width/2+100, -height/2),
       ]
     );
     var ewall = new StaticEntity(wall)

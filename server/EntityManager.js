@@ -7,7 +7,7 @@ var Collision = require('../server/Collision.js');
 
 class EntityManager {
 
-  mode = 0;
+  mode = 1;
 
   entities = [];
   collision = new Collision();
@@ -20,8 +20,7 @@ class EntityManager {
       var entity = this.entities[i];
       entity.shape.collided = false;
       entity.shape.normal = [];
-      entity.shape.clip0 = [];
-      entity.shape.clip = [];
+      entity.shape.clips = [];
     }
 
     for(var i = 0; i < len; ++i) {
@@ -69,16 +68,17 @@ class EntityManager {
     if(this.mode == 1) radius = 40;
     var center = new Vector(x, y);
     var vertices = [];
-    var sides = this.random(3, 6);
+    var sides = this.random(3, 4);
     for(var i = 0; i < sides; ++i) {
       var angle = i * 2 * Math.PI / sides;
       var vo = new Vector(
-        radius * Math.sin(angle),
-        radius * Math.cos(angle)
+        radius * Math.cos(angle),
+        radius * Math.sin(angle)
       );
       var v = vo.add(center);
       vertices.push(v);
     }
+    console.log(vertices)
     var e = new DynamicEntity(new Polygon(center, vertices))
     if(this.mode == 1) e.acc = new Vector(0, -0.1);
     this.add(e);

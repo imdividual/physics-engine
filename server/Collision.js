@@ -123,8 +123,8 @@ class Collision {
     var cp = [];
     var d1 = n.dot(v1) - o;
     var d2 = n.dot(v2) - o;
-    console.log(d1);
-    console.log(d2);
+    // console.log(d1);
+    // console.log(d2);
     if(d1 >= 0) cp.push(v1);
     if(d2 >= 0) cp.push(v2);
     if(d1 * d2 < 0) {
@@ -190,20 +190,17 @@ class Collision {
 
     // correct normal direction
     var cacb = s2.center.sub(s1.center);
-    if(cacb.dot(overlapDir) < 0)
+    if(cacb.dot(overlapDir) < 0) {
       overlapDir = overlapDir.scale(-1);
+    }
 
-    // resolution
-
+    var mtv = overlapDir.scale(-1).normalize().scale(overlapMin)
     var n = overlapDir;
-    var mtv = overlapDir.normalize().scale(overlapMin);
 
     s1.collided = true;
     s2.collided = true;
 
     if(mtv.zero()) return;
-
-    s1.normal = [s1.center, s1.center.add(mtv)];
 
     // clipping algorithm
 
@@ -234,7 +231,7 @@ class Collision {
 
     var o2 = refv.dot(ref.v2);
     var cp2 = this.clip2(cp1[0], cp1[1], refv.scale(-1), -o2);
-    console.log(cp2);
+    // console.log(cp2);
     if(cp2.length < 2) return;
 
     var refn = new Vector(ref.edge.y * -1, ref.edge.x);
@@ -247,79 +244,64 @@ class Collision {
     if(!rm0) cp.push(cp2[0]);
     if(!rm1) cp.push(cp2[1]);
 
-    s1.clip = cp;
-    console.log("!!!");
-    console.log(cp);
+    // console.log(cp);
+    s1.clips.push(cp);
+    s1.normal = [s1.center, s1.center.add(mtv)];
 
-    /*
+    var p = null;
+    if(cp.length == 0) return;
+    if(cp.length == 1) {
+      p = cp[0];
+    } else if(cp.length == 2) {
+      p = new Vector((cp[0].x + cp[1].x) / 2, (cp[0].y + cp[1].y) / 2);
+    }
+
     var v1 = entity1.vel;
     var v2 = entity2.vel;
 
-    // collided vertex
-    var hits = [];
-    for(var i = 0; i < s1.vertices.length; ++i) {
-      var cur = s1.vertices[i];
-      if(this.inside(cur, s2)) {
-        hits.push(cur);
-      }
+    if(entity2 instanceof StaticEntity) {
+      var e = 0.80;
+      var cn = overlapDir.scale(-1);
+      var v_ap = v1;
+      var m_a = 1.0;
+      var r_ap = p.sub(s1.center);
+      var i_a = 4000.0;
+      var j_num = -1 * (1 + e) * v_ap.dot(cn);
+      var j_den = 1 / m_a + Math.pow(r_ap.cross(cn), 2) / i_a;
+      var j = j_num / j_den;
+      entity1.vel = entity1.vel.add(cn.scale(j / m_a));
+      console.log(v_ap);
+      console.log(cn);
+      console.log(v_ap.dot(cn));
+      // console.log(r_ap);
+      // console.log(r_ap.cross(cn));
+      console.log(j_num + " " + j_den);
     }
-    for(var i = 0; i < s2.vertices.length; ++i) {
-      var cur = s2.vertices[i];
-      if(this.inside(cur, s1)) {
-        hits.push(cur);
-      }
-    }
-    console.log(hits.length);
-    if(hits.length != 0) {
-      if(!mtv.zero()) {
-        if(entity2 instanceof StaticEntity) {
-          var e = 0.80;
-          var n = overlapDir;
-          var v_ap = v1;
-          var m_a = 1.0;
-          var p = hits[0];
-          if(hits.length >= 2) p = hits[1].add(hits[0]).scale(0.5);
-          var r_ap = p.sub(s1.center);
-          var i_a = 1.0;
-          var j_num = -1 * (1 + e) * v_ap.dot(n);
-          var j_den = 1 / m_a + Math.pow(r_ap.cross(n), 2) / i_a;
-          var j = j_num / j_den;
-          entity1.vel = entity1.vel.add(n.scale(j / m_a));
-        } else if(entity2 instanceof DynamicEntity) {
-          var e = 0.8;
-          var n = overlapDir;
-          var v_ab = v1.sub(v2);
-          var m_a = 1.0;
-          var m_b = 1.0;
-          var p = hits[0];
-          if(hits.length >= 2) p = hits[1].add(hits[0]).scale(0.5);
-          var r_ap = p.sub(s1.center);
-          var r_bp = p.sub(s2.center);
-          var i_a = 1.0;
-          var i_b = 1.0;
+    else if(entity2 instanceof DynamicEntity) {
+      var e = 0.8;
+      var n = overlapDir;
+      var v_ab = v1.sub(v2);
+      var m_a = 1.0;
+      var m_b = 1.0;
+      var r_ap = p.sub(s1.center);
+      var r_bp = p.sub(s2.center);
+      var i_a = 4000.0;
+      var i_b = 4000.0;
 
-          //var v_n = v_ab.dot(n);
-          //if(v_n <= 0) {
-            var j_num = -1 * (1 + e) * v_ab.dot(n);
-            var j_den = 1 / m_a + 1 / m_b +
-                        Math.pow(r_ap.cross(n), 2) / i_a +
-                        Math.pow(r_bp.cross(n), 2) / i_b;
-            var j = j_num / j_den;
-            entity1.vel = entity1.vel.add(n.scale(j / m_a));
-            entity2.vel = entity2.vel.sub(n.scale(j / m_b));
-          //}
-        }
-      }
+      //var v_n = v_ab.dot(n);
+      //if(v_n <= 0) {
+        var j_num = -1 * (1 + e) * v_ab.dot(n);
+        var j_den = 1 / m_a + 1 / m_b +
+                    Math.pow(r_ap.cross(n), 2) / i_a +
+                    Math.pow(r_bp.cross(n), 2) / i_b;
+        var j = j_num / j_den;
+        entity1.vel = entity1.vel.add(n.scale(j / m_a));
+        entity2.vel = entity2.vel.sub(n.scale(j / m_b));
+      //}
+      entity2.translate(-mtv.x, -mtv.y);
     }
-    */
-
+    entity1.translate(mtv.x, mtv.y);
     /*
-
-
-    if(!mtv.zero()) {
-      entity1.translate(mtv.x, mtv.y);
-    }
-
       // collide vertex
       var vertex = null;
       for(var i = 0; i < s1.vertices.length; ++i) {

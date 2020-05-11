@@ -217,28 +217,17 @@ class Renderer {
         this.graphics.lineWidth = 1;
       }
 
-      /*
-      if(shape.clip0.length == 4) {
-        this.graphics.strokeStyle = 'cyan';
-        this.graphics.lineWidth = 4;
-        this.line(shape.clip0[0], shape.clip0[1], offset);
-        this.line(shape.clip0[2], shape.clip0[3], offset);
-        this.graphics.lineWidth = 1;
+      this.graphics.strokeStyle = 'green';
+      this.graphics.lineWidth = 4;
+      for(var i = 0; i < shape.clips.length; ++i) {
+        var clip = shape.clips[i];
+        if(clip.length == 1) {
+          this.point(clip[0], offset, 'green');
+        } else if(clip.length >= 2) {
+          this.line(clip[0], clip[1], offset);
+        }
       }
-      */
-
-      if(shape.clip.length == 1) {
-        this.graphics.fillStyle = 'green';
-        this.point(shape.clip[0], offset);
-      }
-
-      if(shape.clip.length == 2) {
-        this.graphics.strokeStyle = 'green';
-        this.graphics.lineWidth = 4;
-        this.line(shape.clip[0], shape.clip[1], offset);
-        // this.line(shape.clip[2], shape.clip[3], offset);
-        this.graphics.lineWidth = 1;
-      }
+      this.graphics.lineWidth = 1;
   }
 
   line(p1, p2, offset) {
@@ -251,11 +240,11 @@ class Renderer {
 
   vector(p1, p2, offset, color='blue') {
     this.line(p1, p2, offset);
-    this.graphics.fillStyle = color;
-    this.point(p2, offset);
+    this.point(p2, offset, color);
   }
 
-  point(p0, offset) {
+  point(p0, offset, color='blue') {
+    this.graphics.fillStyle = color;
     this.graphics.beginPath();
     this.graphics.arc(p0.x+offset.x, -p0.y+offset.y, 3, 0, 2 * Math.PI);
     this.graphics.fill();
@@ -293,8 +282,7 @@ class Shape {
 
   collided = false;
   normal = [];
-  clip0 = [];
-  clip = [];
+  clips = [];
 
   constructor(center) {
     this.id = this.genID();

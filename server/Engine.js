@@ -55,6 +55,18 @@ class Engine {
     var ewall = new StaticEntity(wall)
     this.entityManager.add(ewall);
 
+    var wall2 = new Polygon(
+      new Vector(-width/2, height/2+50),
+      [
+        new Vector(-width/2, height),
+        new Vector(-width/2-100, height),
+        new Vector(-width/2-100, -height/2),
+        new Vector(-width/2, -height/2),
+      ]
+    );
+    var ewall2 = new StaticEntity(wall2)
+    this.entityManager.add(ewall2);
+
     /*
     var rec = new Polygon(
       new Vector(25, 25),
